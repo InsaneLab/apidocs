@@ -82,9 +82,26 @@ $(function(){
    			uri = uri.replace(name, this.value);
   		});
 
+        $.fn.serializeObject = function()
+        {
+            var o = {};
+            var a = this.serializeArray();
+            $.each(a, function() {
+                if (o[this.name] !== undefined) {
+                    if (!o[this.name].push) {
+                        o[this.name] = [o[this.name]];
+                    }
+                    o[this.name].push(this.value || '');
+                } else {
+                    o[this.name] = this.value || '';
+                }
+            });
+            return o;
+        };
+
 		var url = api_base_url + uri;
 		var type = self.attr('type');
-		var data =	self.serialize();
+		var data =	self.serializeObject();
 
 
 
@@ -92,7 +109,7 @@ $(function(){
 			url: url,
 			type: type,
 			dataType: 'json',
-			data: data,
+			data: JSON.stringify(data),
 			success: function(data, status, request)
 	        {
 	        	body = JSON.stringify(JSON.parse(request.responseText), undefined, 4);
