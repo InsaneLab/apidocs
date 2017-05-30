@@ -16,6 +16,7 @@
                         </div> -->
                         <form class="api-explorer-form" uri="{request-uri}" type="{request-type}">
                           <div class="endpoint-paramenters">
+                            {authorization-ajax}
                             <h4>Parameters</h4>
                             <ul>
                               <li class="parameter-header">

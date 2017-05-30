@@ -14,6 +14,7 @@ return [
     'head_template_path' => 'vendor/f2m2/apidocs/src/templates/includes/head.blade.php',
     'introduction_template_path' => 'vendor/f2m2/apidocs/src/templates/includes/introduction.blade.php',
     'body_content_template_path' => 'vendor/f2m2/apidocs/src/templates/includes/body_content.blade.php',
+    'body_authorization_template_path' => 'vendor/f2m2/apidocs/src/templates/includes/body_authorization.blade.php',
     'compile_content_template_path' => 'vendor/f2m2/apidocs/src/templates/includes/compile_content.blade.php',
     'nav_items_template_path' => 'vendor/f2m2/apidocs/src/templates/includes/nav_items.blade.php',
     'navigation_template_path' => 'vendor/f2m2/apidocs/src/templates/includes/navigation.blade.php',

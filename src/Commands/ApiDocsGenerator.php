@@ -380,6 +380,12 @@ class ApiDocsGenerator {
                     $sectionItem = str_replace('{function}', $endpoint['function'], $sectionItem);
                     $sectionItem = str_replace('{request-uri}',  end($uri),  $sectionItem);
 
+                    if($value['jwt']) {
+                        $sectionItem = str_replace('{authorization-ajax}',  File::get(config::get('apidocs.body_authorization_template_path')),  $sectionItem);
+                    } else {
+                        $sectionItem = str_replace('{authorization-ajax}',  '',  $sectionItem);
+                    }
+
                     $method_params =  $endpoint['docBlock']->getTagsByName('param');
                     $controller_params =  $endpoint['controllerDocBlock']->getTagsByName('param');
 
@@ -541,11 +547,20 @@ class ApiDocsGenerator {
 
         $uri = implode('|', $route->methods()).' '.$route->uri();
 
+        $jwt = false;
+        foreach($route->middleware() as $middleware) {
+            if(strpos($middleware, 'jwt.') !== false) {
+                $jwt = true;
+            }
+        }
+
+
         return $this->filterRoute(array(
             'host'   => $route->domain(),
             'uri'    => $uri,
             'name'   => $route->getName(),
             'action' => $route->getActionName(),
+            'jwt'    => $jwt,
             // 'before' => $this->getBeforeFilters($route),
             // 'after'  => $this->getAfterFilters($route),
             'prefix' => $route->getPrefix(),

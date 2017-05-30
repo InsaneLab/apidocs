@@ -102,12 +102,20 @@ $(function(){
 		var url = api_base_url + uri;
 		var type = self.attr('type');
 		var data =	self.serializeObject();
+		var headers = {};
 
+		if(data['authentication_ajax_value']) {
+			headers['Authorization'] = data['authentication_ajax_value'];
+		}
 
+        delete data['authentication_ajax_value'];
+
+		console.log(headers);
 
 	 	$.ajax({
 			url: url,
 			type: type,
+			headers: headers,
             contentType: 'application/json;charset=utf-8',
             dataType: 'json',
             data: JSON.stringify(data),
