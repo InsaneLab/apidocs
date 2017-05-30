@@ -108,8 +108,9 @@ $(function(){
 	 	$.ajax({
 			url: url,
 			type: type,
-			dataType: 'json',
-			data: JSON.stringify(data),
+            contentType: 'application/json;charset=utf-8',
+            dataType: 'json',
+            data: JSON.stringify(data),
 			success: function(data, status, request)
 	        {
 	        	body = JSON.stringify(JSON.parse(request.responseText), undefined, 4);
