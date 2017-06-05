@@ -1,5 +1,7 @@
 <?php namespace F2m2\Apidocs\Commands;
 
+use F2m2\Apidocs\Generators\LaravelGenerator;
+use F2m2\Apidocs\Generators\AbstractGenerator;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Config;
@@ -65,12 +67,79 @@ class ApiDocsGenerator {
             return;
         }
 
-        $endpoints = $this->getEndpoints();
+        $routeGenerator = new LaravelGenerator();
+        $routeGenerator->prepareMiddleware();
+
+        $allowedRoutes = [];
+        $middleware = null;
+
+        $endpoints = $this->processLaravelRoutes($routeGenerator, $allowedRoutes, $prefix, $middleware);
 
         $this->generateDirectoryStructure();
         $this->generateHTMLCode($endpoints);
 
         return;
+    }
+
+
+    /**
+     * @param AbstractGenerator  $generator
+     * @param $allowedRoutes
+     * @param $routePrefix
+     *
+     * @return array
+     */
+    private function processLaravelRoutes(AbstractGenerator $generator, $allowedRoutes, $routePrefix, $middleware)
+    {
+        $withResponse = true;
+        $routes = $this->routes;
+        $bindings = $this->getBindings();
+        $parsedRoutes = [];
+        foreach ($routes as $route) {
+            if (in_array($route->getName(), $allowedRoutes) || str_is($routePrefix, $generator->getUri($route)) || in_array($middleware, $route->middleware())) {
+                if ($this->isValidRoute($route) && $this->isRouteVisibleForDocumentation($route->getAction()['uses'])) {
+                    $parsedRoutes[] = $generator->processRoute($route, $bindings, $this->option('header'), $withResponse);
+                    $this->info('Processed route: ['.implode(',', $generator->getMethods($route)).'] '.$generator->getUri($route));
+                } else {
+                    $this->warn('Skipping route: ['.implode(',', $generator->getMethods($route)).'] '.$generator->getUri($route));
+                }
+            }
+        }
+
+        return $parsedRoutes;
+    }
+
+    /**
+     * @param $route
+     *
+     * @return bool
+     */
+    private function isValidRoute($route)
+    {
+        return ! is_callable($route->getAction()['uses']) && ! is_null($route->getAction()['uses']);
+    }
+
+    /**
+     * @param $route
+     *
+     * @return bool
+     */
+    private function isRouteVisibleForDocumentation($route)
+    {
+        list($class, $method) = explode('@', $route);
+        $reflection = new ReflectionClass($class);
+        $comment = $reflection->getMethod($method)->getDocComment();
+        if ($comment) {
+            $phpdoc = new DocBlock($comment);
+
+            return collect($phpdoc->getTags())
+                ->filter(function ($tag) use ($route) {
+                    return $tag->getName() === 'hideFromAPIDocumentation';
+                })
+                ->isEmpty();
+        }
+
+        return true;
     }
 
     /**
@@ -490,8 +559,25 @@ class ApiDocsGenerator {
         {
             $results[] = $this->getRouteInformation($route);
         }
-
         return array_filter($results);
+    }
+
+    /**
+     * @return array
+     */
+    private function getBindings()
+    {
+        if (empty($bindings)) {
+            return [];
+        }
+        $bindings = explode('|', $bindings);
+        $resultBindings = [];
+        foreach ($bindings as $binding) {
+            list($name, $id) = explode(',', $binding);
+            $resultBindings[$name] = $id;
+        }
+
+        return $resultBindings;
     }
 
     /**
@@ -584,7 +670,7 @@ class ApiDocsGenerator {
         return $route;
     }
 
-        /**
+    /**
      * Get the pattern filters for a given URI and method.
      *
      * @param  string  $uri
