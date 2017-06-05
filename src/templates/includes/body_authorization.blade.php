@@ -10,7 +10,7 @@
                               <li>
                                 <div class="parameter-name">Bearer</div>
                                 <div class="parameter-type">&nbsp;</div>
-                                <div class="parameter-desc">Add token from registration i.e. "Bearer <token>"</div>
+                                <div class="parameter-desc">Add token from registration</div>
                                 <div class="parameter-value">
                                    <textarea name="authentication_ajax_value" cols="30" rows="10" placeholder="Bearer <token>" required></textarea>
                                 </div>

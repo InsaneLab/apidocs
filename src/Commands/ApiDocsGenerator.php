@@ -457,34 +457,61 @@ class ApiDocsGenerator {
 
                     $method_params =  $endpoint['docBlock']->getTagsByName('param');
                     $controller_params =  $endpoint['controllerDocBlock']->getTagsByName('param');
+                    $required_params =  $endpoint['docBlock']->getTagsByName('required');
 
-                    $params = array_merge($method_params, $controller_params);
+                    $params = array_merge($method_params, $controller_params, $required_params);
 
                     $parameters = '';
 
                     foreach ($params as $param)
                     {
-                        $param_name = str_replace($param->getDescription(), '', $param->getContent());
-                        $param_name = str_replace($param->getType(), '', $param_name);
+                        $param_name = $param->getContent();
+                        if($param->getName() != 'required') {
+                            $param_name = str_replace($param->getDescription(), '', $param->getContent());
+                            $param_name = str_replace($param->getType(), '', $param_name);
+                            $param_type = $param->getType();
+                            $param_content = $param->getDescription();
+                        } else {
+                            $table = explode(' ', $param_name);
+                            $param_type = $table[0];
+                            $param_name = $table[1];
+                            $param_content = isset($table[2]) ? $table[2] : null;
+                        }
                         $param_name = str_replace(' ', '', $param_name);
                         $param_name = urldecode($param_name);
-
                         if($param_name[0] == '$'){
                             $param_name = str_replace('$', '', $param_name);
                         }
 
-                        if ($param->getType() == 'array' && strpos($param_name,'[') == false) {
+                        if ($param_type == 'array' && strpos($param_name,'[') == false) {
                             $param_name .= '[]';
                         }
 
                         $parameters .= File::get(config::get('apidocs.parameters_template_path'));
-                        $parameters = str_replace('{param-name}', $param_name , $parameters);
-                        $parameters = str_replace('{param-type}',  $param->getType(),  $parameters);
-                        $parameters = str_replace('{param-desc}',  $param->getDescription(),  $parameters);
+
+                        if($param->getName() == 'required') {
+                            $parameters = str_replace('{param-name}', $param_name.' <span style="color: red;">*</span>', $parameters);
+                            $parameters = str_replace('name="'.$param_name.' <span style="color: red;">*</span>"', 'name="'.$param_name.'"', $parameters);
+                        } else {
+                            $parameters = str_replace('{param-name}', $param_name , $parameters);
+                        }
+
+                        if($param->getName() == 'required') {
+                            $parameters = str_replace('{param-type}', $param_type.' (required)', $parameters);
+                        } else {
+                            $parameters = str_replace('{param-type}', $param_type, $parameters);
+                        }
+
+                        $parameters = str_replace('{param-desc}',  $param_content,  $parameters);
 
                         if(strpos(strtolower($param_name),'password') !== false ){
                             $parameters = str_replace('type="text" class="parameter-value-text" name="' . $param_name . '"', 'type="password" class="parameter-value-text" name="'. $param_name . '"' , $parameters);
                         }
+
+                        if($param->getName() == 'required') {
+                            $parameters = str_replace('type="text" class="parameter-value-text" name="' . $param_name . '"', 'type="text" class="parameter-value-text" name="' . $param_name . '" required' , $parameters);
+                        }
+
                     }
 
                     if(strlen($parameters) > 0){
