@@ -1,9 +1,12 @@
 <?php namespace F2m2\Apidocs\Commands;
 
+use F2m2\Apidocs\Generators\LaravelGenerator;
+use F2m2\Apidocs\Generators\AbstractGenerator;
 use Illuminate\Console\Command;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
-use F2m2\Apidocs\Commands\ApiDocsGenerator;
+use Illuminate\Support\Facades\Route as RouteFacade;
+use phpDocumentor\Reflection\DocBlock;
+use ReflectionClass;
 
 class ApiDocsGeneratorCommand extends Command {
 
@@ -63,8 +66,23 @@ class ApiDocsGeneratorCommand extends Command {
 		}
 		$this->info('Generating ' . $prefix . ' API Documentation.');
 
+        $allowedRoutes = [];
+        $routePrefix = $prefix.'/*';
+        $middleware = '';
+
+        $this->setUserToBeImpersonated(1);
+
+		$generator = new LaravelGenerator();
+        $generator->prepareMiddleware(true);
+
+        $parsedRoutes = $this->processLaravelRoutes($generator, $allowedRoutes, $routePrefix, $middleware);
+        $parsedRoutes = collect($parsedRoutes)->groupBy('resource')->sort(function ($a, $b) {
+            return strcmp($a->first()['resource'], $b->first()['resource']);
+        });
+        //dd($parsedRoutes);
+
 	   // generate the docs
-	   $this->generator->make($prefix);
+	   $this->generator->make($prefix, $parsedRoutes);
 
 	   $dot_prefix = str_replace('/', '.', $prefix);
 
@@ -80,6 +98,24 @@ class ApiDocsGeneratorCommand extends Command {
             });"
         ));
 	}
+
+    /**
+     * @param $actAs
+     */
+    private function setUserToBeImpersonated($actAs)
+    {
+        if (! empty($actAs)) {
+            if (version_compare($this->laravel->version(), '5.2.0', '<')) {
+                $userModel = config('auth.model');
+                $user = $userModel::find((int) $actAs);
+                $this->laravel['auth']->setUser($user);
+            } else {
+                $userModel = config('auth.providers.users.model');
+                $user = $userModel::find((int) $actAs);
+                $this->laravel['auth']->guard()->setUser($user);
+            }
+        }
+    }
 
 	/**
 	 * Get the console command arguments.
@@ -104,5 +140,92 @@ class ApiDocsGeneratorCommand extends Command {
 	// 		array('example', null, InputOption::VALUE_OPTIONAL, 'An example option.', null),
 	// 	);
 	// }
+
+    /**
+     * @param AbstractGenerator  $generator
+     * @param $allowedRoutes
+     * @param $routePrefix
+     *
+     * @return array
+     */
+    private function processLaravelRoutes(AbstractGenerator $generator, $allowedRoutes, $routePrefix, $middleware)
+    {
+        $withResponse = true;
+        $routes = $this->getRoutes();
+        $bindings = $this->getBindings();
+        $parsedRoutes = [];
+        foreach ($routes as $route) {
+            if (in_array($route->getName(), $allowedRoutes) || str_is($routePrefix, $generator->getUri($route)) || in_array($middleware, $route->middleware())) {
+                if ($this->isValidRoute($route) && $this->isRouteVisibleForDocumentation($route->getAction()['uses'])) {
+                    $parsedRoutes[] = $generator->processRoute($route, $bindings, [], $withResponse);
+                    $this->info('Processed route: ['.implode(',', $generator->getMethods($route)).'] '.$generator->getUri($route));
+                } else {
+                    $this->warn('Skipping route: ['.implode(',', $generator->getMethods($route)).'] '.$generator->getUri($route));
+                }
+            }
+        }
+
+        return $parsedRoutes;
+    }
+
+    /**
+     * @return mixed
+     */
+    private function getRoutes()
+    {
+        return RouteFacade::getRoutes();
+    }
+
+    /**
+     * @return array
+     */
+    private function getBindings()
+    {
+        $bindings = '';
+        if (empty($bindings)) {
+            return [];
+        }
+        $bindings = explode('|', $bindings);
+        $resultBindings = [];
+        foreach ($bindings as $binding) {
+            list($name, $id) = explode(',', $binding);
+            $resultBindings[$name] = $id;
+        }
+
+        return $resultBindings;
+    }
+
+    /**
+     * @param $route
+     *
+     * @return bool
+     */
+    private function isValidRoute($route)
+    {
+        return ! is_callable($route->getAction()['uses']) && ! is_null($route->getAction()['uses']);
+    }
+
+    /**
+     * @param $route
+     *
+     * @return bool
+     */
+    private function isRouteVisibleForDocumentation($route)
+    {
+        list($class, $method) = explode('@', $route);
+        $reflection = new ReflectionClass($class);
+        $comment = $reflection->getMethod($method)->getDocComment();
+        if ($comment) {
+            $phpdoc = new DocBlock($comment);
+
+            return collect($phpdoc->getTags())
+                ->filter(function ($tag) use ($route) {
+                    return $tag->getName() === 'hideFromAPIDocumentation';
+                })
+                ->isEmpty();
+        }
+
+        return true;
+    }
 
 }

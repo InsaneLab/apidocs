@@ -5,6 +5,7 @@ use F2m2\Apidocs\Generators\AbstractGenerator;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Http\Request;
@@ -56,7 +57,7 @@ class ApiDocsGenerator {
      * @return void
      */
 
-    public function make($prefix)
+    public function make($prefix, $parsedRoutes)
     {
         $this->prefix = $prefix;
         $this->dotPrefix = str_replace('/', '.', $this->prefix);
@@ -67,79 +68,12 @@ class ApiDocsGenerator {
             return;
         }
 
-        $routeGenerator = new LaravelGenerator();
-        $routeGenerator->prepareMiddleware();
-
-        $allowedRoutes = [];
-        $middleware = null;
-
-        $endpoints = $this->processLaravelRoutes($routeGenerator, $allowedRoutes, $prefix, $middleware);
+        $endpoints = $this->getEndpoints();
 
         $this->generateDirectoryStructure();
-        $this->generateHTMLCode($endpoints);
+        $this->generateHTMLCode($endpoints, $parsedRoutes);
 
         return;
-    }
-
-
-    /**
-     * @param AbstractGenerator  $generator
-     * @param $allowedRoutes
-     * @param $routePrefix
-     *
-     * @return array
-     */
-    private function processLaravelRoutes(AbstractGenerator $generator, $allowedRoutes, $routePrefix, $middleware)
-    {
-        $withResponse = true;
-        $routes = $this->routes;
-        $bindings = $this->getBindings();
-        $parsedRoutes = [];
-        foreach ($routes as $route) {
-            if (in_array($route->getName(), $allowedRoutes) || str_is($routePrefix, $generator->getUri($route)) || in_array($middleware, $route->middleware())) {
-                if ($this->isValidRoute($route) && $this->isRouteVisibleForDocumentation($route->getAction()['uses'])) {
-                    $parsedRoutes[] = $generator->processRoute($route, $bindings, $this->option('header'), $withResponse);
-                    $this->info('Processed route: ['.implode(',', $generator->getMethods($route)).'] '.$generator->getUri($route));
-                } else {
-                    $this->warn('Skipping route: ['.implode(',', $generator->getMethods($route)).'] '.$generator->getUri($route));
-                }
-            }
-        }
-
-        return $parsedRoutes;
-    }
-
-    /**
-     * @param $route
-     *
-     * @return bool
-     */
-    private function isValidRoute($route)
-    {
-        return ! is_callable($route->getAction()['uses']) && ! is_null($route->getAction()['uses']);
-    }
-
-    /**
-     * @param $route
-     *
-     * @return bool
-     */
-    private function isRouteVisibleForDocumentation($route)
-    {
-        list($class, $method) = explode('@', $route);
-        $reflection = new ReflectionClass($class);
-        $comment = $reflection->getMethod($method)->getDocComment();
-        if ($comment) {
-            $phpdoc = new DocBlock($comment);
-
-            return collect($phpdoc->getTags())
-                ->filter(function ($tag) use ($route) {
-                    return $tag->getName() === 'hideFromAPIDocumentation';
-                })
-                ->isEmpty();
-        }
-
-        return true;
     }
 
     /**
@@ -249,7 +183,7 @@ class ApiDocsGenerator {
     * @return void
     */
 
-    protected function generateHTMLCode($endpoints)
+    protected function generateHTMLCode($endpoints, $parsedRoutes)
     {
         /*
         * Docs Index
@@ -275,7 +209,7 @@ class ApiDocsGenerator {
         $this->updatePrefixAndSaveTemplate('includes', Config::get('apidocs.introduction_template_path'));
 
         // let's generate the body
-        $content = $this->createContentForTemplate($endpoints);
+        $content = $this->createContentForTemplate($endpoints, $parsedRoutes);
 
 
        // Save the default layout
@@ -402,9 +336,8 @@ class ApiDocsGenerator {
     * @return void
     */
 
-     private function createContentForTemplate($endpoints = array())
+     private function createContentForTemplate($endpoints = array(), $parsedRoutes)
      {
-
        if(!$endpoints) return FALSE;
 
         $navigation     = '';
@@ -458,6 +391,11 @@ class ApiDocsGenerator {
                     $method_params =  $endpoint['docBlock']->getTagsByName('param');
                     $controller_params =  $endpoint['controllerDocBlock']->getTagsByName('param');
                     $required_params =  $endpoint['docBlock']->getTagsByName('required');
+
+                    if(end($uri) == 'api/authenticate/send-confirmation-sms') {
+                        $required_params = $this->findParsedRoute($parsedRoutes, end($uri), $endpoint['method']);
+                        //dd($required_params);
+                    }
 
                     $params = array_merge($method_params, $controller_params, $required_params);
 
@@ -556,6 +494,17 @@ class ApiDocsGenerator {
         return $data;
     }
 
+    /**
+     *
+     */
+    private function findParsedRoute($parsedRoutes, $uri, $method)
+    {
+        $routeParams = $parsedRoutes['general']->where('uri', $uri)->filter(function($value, $key) use($method) {
+            return in_array($method, $value['methods']);
+        })->first();
+
+        return $routeParams['parameters'];
+    }
 
     /**
      * Retuns the last part of the section name
@@ -589,23 +538,6 @@ class ApiDocsGenerator {
         return array_filter($results);
     }
 
-    /**
-     * @return array
-     */
-    private function getBindings()
-    {
-        if (empty($bindings)) {
-            return [];
-        }
-        $bindings = explode('|', $bindings);
-        $resultBindings = [];
-        foreach ($bindings as $binding) {
-            list($name, $id) = explode(',', $binding);
-            $resultBindings[$name] = $id;
-        }
-
-        return $resultBindings;
-    }
 
     /**
      * Get before filters
