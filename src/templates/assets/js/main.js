@@ -128,7 +128,7 @@ $(function(){
                     requestHeaders['Data'] = JSON.stringify(data_send);
 				}
 				if(request.getResponseHeader('Authorization')) {
-                	$('[name="authentication_ajax_value"').val(request.getResponseHeader('Authorization'));
+                	$('[name="authentication_ajax_value"]').val(request.getResponseHeader('Authorization'));
 				}
 	            updateResponse(self, url, body, statusCode, statusText, responseHeaders, requestHeaders);
 	            enableBtn(btn);
@@ -152,7 +152,7 @@ $(function(){
                     requestHeaders['Data'] = JSON.stringify(data_send);
                 }
                 if(response.getResponseHeader('Authorization')) {
-                    $('[name="authentication_ajax_value"').val(response.getResponseHeader('Authorization'));
+                    $('[name="authentication_ajax_value"]').val(response.getResponseHeader('Authorization'));
                 }
 	        	updateResponse(self,url, body, statusCode, statusText, responseHeaders, requestHeaders);
 	        	enableBtn(btn);
