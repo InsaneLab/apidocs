@@ -1,7 +1,6 @@
 <?php
 /**
  * @author Marcel Pociot <m.pociot@gmail.com>
- * @source https://github.com/mpociot/laravel-apidoc-generator/blob/master/src/Mpociot/ApiDoc/Generators/LaravelGenerator.php
  * @author Tomasz Urban <tomek.urban@insanelab.com>
  * @license MIT
  */

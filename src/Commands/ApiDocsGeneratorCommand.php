@@ -1,7 +1,7 @@
 <?php namespace Insanelab\Apidocs\Commands;
 
-use F2m2\Apidocs\Generators\LaravelGenerator;
-use F2m2\Apidocs\Generators\AbstractGenerator;
+use Insanelab\Apidocs\Generators\LaravelGenerator;
+use Insanelab\Apidocs\Generators\AbstractGenerator;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Illuminate\Support\Facades\Route as RouteFacade;
