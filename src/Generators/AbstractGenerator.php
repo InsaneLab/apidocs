@@ -1,5 +1,15 @@
 <?php
-namespace F2m2\Apidocs\Generators;
+/**
+ * @author Marcel Pociot <m.pociot@gmail.com>
+ * @source https://github.com/mpociot/laravel-apidoc-generator/blob/master/src/Mpociot/ApiDoc/Generators/AbstractGenerator.php
+ * @author Tomasz Urban <tomek.urban@insanelab.com>
+ * @author Mateusz Pęczkowski <mateusz.peczkowski@insanelab.com>
+ * @license MIT
+ *
+ * @category Class
+ */
+
+namespace Insanelab\Apidocs\Generators;
 
 use Faker\Factory;
 use ReflectionClass;
@@ -8,7 +18,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use phpDocumentor\Reflection\DocBlock;
-use F2m2\Apidocs\Parsers\RuleDescriptionParser as Description;
+use Insanelab\Apidocs\Parsers\RuleDescriptionParser as Description;
 
 abstract class AbstractGenerator
 {
@@ -116,7 +126,7 @@ abstract class AbstractGenerator
     /**
      * @param  \Illuminate\Routing\Route  $route
      *
-     * @return string
+     * @return array
      */
     protected function getRouteDescription($route)
     {
@@ -207,6 +217,15 @@ abstract class AbstractGenerator
         return implode($first, $arr);
     }
 
+    /**
+     * Split value pairs
+     *
+     * @param $parameters
+     * @param string $first
+     * @param string $last
+     *
+     * @return string
+     */
     protected function splitValuePairs($parameters, $first = 'is ', $last = 'or ')
     {
         $attribute = '';

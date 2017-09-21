@@ -1,13 +1,21 @@
 {
-    "name": "f2m2/apidocs",
+    "name": "insanelab/apidocs",
     "description": "Laravel API Documentation Generator",
     "authors": [
         {
             "name": "F2M2, Inc.",
             "email": "hello@f2m2.com"
+        },
+        {
+            "name": "carthage84",
+            "email": "carthage84@gmail.com"
+        },
+        {
+            "name": "peczis",
+            "email": "mateusz@jampstudio.pl"
         }
     ],
-    "homepage": "https://github.com/f2m2/apidocs",
+    "homepage": "https://github.com/insanelab/apidocs",
     "license": "MIT",
     "require": {
         "illuminate/support": "5.*",

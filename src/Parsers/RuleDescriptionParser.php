@@ -1,6 +1,14 @@
 <?php
+/**
+ * @author Marcel Pociot <m.pociot@gmail.com>
+ * @author Tomasz Urban <tomek.urban@insanelab.com>
+ * @source https://github.com/mpociot/laravel-apidoc-generator/blob/master/src/Mpociot/ApiDoc/Parsers/RuleDescriptionParser.php
+ * @license MIT
+ *
+ * @category Class
+ */
 
-namespace F2m2\Apidocs\Parsers;
+namespace Insanelab\Apidocs\Parsers;
 
 class RuleDescriptionParser
 {
@@ -15,7 +23,7 @@ class RuleDescriptionParser
      */
     public function __construct($rule = null)
     {
-        $this->rule = "apidoc::rules.{$rule}";
+        $this->rule = "apidocs::rules.{$rule}";
     }
 
     /**

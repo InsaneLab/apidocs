@@ -1,4 +1,4 @@
-<?php namespace F2m2\Apidocs\Commands;
+<?php namespace Insanelab\Apidocs\Commands;
 
 use F2m2\Apidocs\Generators\LaravelGenerator;
 use F2m2\Apidocs\Generators\AbstractGenerator;
