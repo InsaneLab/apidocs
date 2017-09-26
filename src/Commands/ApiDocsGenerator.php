@@ -83,12 +83,8 @@ class ApiDocsGenerator
     {
 
         $endpoints = [];
-
         foreach ($this->routes as $route) {
-            $array = explode("@", $route['action']);
-            $class = $array[0];
-
-            if ($class == "Closure") {
+            if ($route['action'] == "Closure") {
 
                 // check for api/v1/docs
                 if (strpos($route['uri'], $this->prefix . '/docs') !== false) {
@@ -96,6 +92,8 @@ class ApiDocsGenerator
                 }
             }
 
+            $array = explode("@", $route['action']);
+            $class = $array[0];
 
             $reflector = new ReflectionClass($class);
             $docBlock = new DocBlock($reflector);
@@ -122,12 +120,12 @@ class ApiDocsGenerator
 
         foreach ($this->routes as $route) {
 
-            $array = explode("@", $route['action']);
-            $class = $array[0];
-
-            if ($class == "Closure") {
+            if ($route['action'] == "Closure") {
                 continue;
             }
+
+            $array = explode("@", $route['action']);
+            $class = $array[0];
 
             $methodName = (count($array) > 1) ? $array[1] : '';
             $endpointName = str_replace('Controller', '', $class);
@@ -391,19 +389,18 @@ class ApiDocsGenerator
                     $required_params = $endpoint['docBlock']->getTagsByName('required');
                     $auto_parameters = $this->findParsedRoute($parsedRoutes, end($uri), $endpoint['method']);
 
-
                     $required = [];
                     $optional = [];
 
-                    foreach ($auto_parameters as $key => $param) {
-                        if (!isset($required[$key]) AND !isset($optional[$key])) {
+                    foreach ($auto_parameters as $auto_key => $param) {
+                        if (!isset($required[$auto_key]) AND !isset($optional[$auto_key])) {
                             if (is_array($param['description'])) {
                                 $param['description'] = '';
                             }
                             if ($param['required']) {
-                                $required[$key] = $param;
+                                $required[$auto_key] = $param;
                             } else {
-                                $optional[$key] = $param;
+                                $optional[$auto_key] = $param;
                             }
                         }
                     }
@@ -411,14 +408,13 @@ class ApiDocsGenerator
                     $controller_params = array_merge($method_params, $controller_params);
 
                     foreach ($controller_params as $param) {
-                        $param_name = $param->getContent();
                         $param_name = str_replace($param->getDescription(), '', $param->getContent());
                         $param_name = str_replace($param->getType(), '', $param_name);
                         $param_type = $param->getType();
                         $param_content = $param->getDescription() ?: '';
                         $param_name = str_replace(' ', '', $param_name);
                         $param_name = urldecode($param_name);
-                        if ($param_name[0] == '$') {
+                        if (isset($param_name[0]) && $param_name[0] == '$') {
                             $param_name = str_replace('$', '', $param_name);
                         }
 
@@ -446,7 +442,7 @@ class ApiDocsGenerator
                         $param_type = $table[0];
                         $param_name = $table[1];
                         $param_content = isset($table[2]) ? $table[2] : '';
-                        if ($param_name[0] == '$') {
+                        if (isset($param_name[0]) && $param_name[0] == '$') {
                             $param_name = str_replace('$', '', $param_name);
                         }
                         if (!isset($required[$param_name])) {
@@ -462,7 +458,6 @@ class ApiDocsGenerator
                             $required[$param_name]['description'] = $param_content;
                         }
                     }
-
 
                     $params = array_merge($required, $optional);
 
@@ -613,10 +608,12 @@ class ApiDocsGenerator
      *
      * @param  string $name
      * @param  \Illuminate\Routing\Route $route
-     * @return array
+     * @return array|bool
      */
     protected function getRouteInformation(Route $route)
     {
+        if ($route->getActionName() == 'Closure')
+            return FALSE;
 
         $uri = implode('|', $route->methods()) . ' ' . $route->uri();
 

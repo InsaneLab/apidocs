@@ -129,18 +129,6 @@ class ApiDocsGeneratorCommand extends Command {
 		);
 	}
 
-	/**
-	 * Get the console command options.
-	 *
-	 * @return array
-	 */
-	// protected function getOptions()
-	// {
-	// 	return array(
-	// 		array('example', null, InputOption::VALUE_OPTIONAL, 'An example option.', null),
-	// 	);
-	// }
-
     /**
      * @param AbstractGenerator  $generator
      * @param $allowedRoutes
