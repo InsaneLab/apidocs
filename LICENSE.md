@@ -4,7 +4,9 @@ Laravel API Docs Generator
 
 The MIT License (MIT)
 
-Copyright (c) 2014-2016 F2M2, Inc. <hello@f2m2.com>
+Original work Copyright to "Laravel API Docs Generator" are held by (c) 2014-2016 F2M2, Inc. <hello@f2m2.com>\
+Some parts of this work Copyright to "Laravel API Documentation Generator" are held by (c) 2016 Marcel Pociot <m.pociot@gmail.com>\
+Modified work Copyright to "Laravel API Docs Generator" are held by (c) 2015-2017 In'sanelab, Inc. <contact@insanelab.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,4 +24,4 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.apidocs
+THE SOFTWARE.

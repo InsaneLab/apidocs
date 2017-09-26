@@ -1,7 +1,6 @@
-<?php namespace F2m2\Apidocs;
+<?php namespace Insanelab\Apidocs;
 
 use Illuminate\Support\ServiceProvider;
-use F2m2\Apidocs\ApiDocsGeneratorCommand;
 
 class ApidocsServiceProvider extends ServiceProvider {
 
@@ -46,7 +45,7 @@ class ApidocsServiceProvider extends ServiceProvider {
 	private function registerApiDocsGeneratorCommand(){
 
  		$this->app->singleton('apidocs.generate', function ($app) {
-            return $app['F2m2\Apidocs\Commands\ApiDocsGeneratorCommand'];
+            return $app['Insanelab\Apidocs\Commands\ApiDocsGeneratorCommand'];
         });
 
         $this->commands('apidocs.generate');

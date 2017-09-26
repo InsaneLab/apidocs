@@ -1,5 +1,5 @@
 {
-    "name": "carthage84/apidocs",
+    "name": "insanelab/apidocs",
     "description": "Laravel API Documentation Generator",
     "authors": [
         {
@@ -7,24 +7,28 @@
             "email": "hello@f2m2.com"
         },
         {
-            "name": "carthage84",
-            "email": "carthage84@gmail.com"
+            "name": "Marcel Pociot",
+            "email": "m.pociot@gmail.com"
         },
         {
-            "name": "peczis",
+            "name": "Tomasz Urban",
+            "email": "tomasz.urban@badtripsoftware.com"
+        },
+        {
+            "name": "Mateusz Pęczkowski",
             "email": "mateusz@jampstudio.pl"
         }
     ],
-    "homepage": "https://github.com/carthage84/apidocs",
+    "homepage": "https://github.com/insanelab/apidocs",
     "license": "MIT",
     "require": {
         "illuminate/support": "5.*",
-        "php" : ">=5.4.0",
+        "php" : ">=5.6.0",
         "phpdocumentor/reflection-docblock": "2.0.*@dev"
     },
     "autoload": {
         "psr-4": {
-            "F2m2\\Apidocs\\": "src/"
+            "Insanelab\\Apidocs\\": "src/"
         }
     },
     "minimum-stability": "stable"

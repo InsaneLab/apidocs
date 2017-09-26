@@ -1,7 +1,7 @@
 
 # Laravel API Docs Generator
 
-This Laravel package provides an API Documentation generator based upon your Routes and Controller Method DocBlock comments.
+This Laravel package provides an API Documentation generator based upon your Routes, Form requests with optional Controller Method DocBlock comments.
 
 ## Installation
 
@@ -10,7 +10,7 @@ This Laravel package provides an API Documentation generator based upon your Rou
 Begin by installing this package through Composer. Edit your project's `composer.json` file to require `f2m2/apidocs`.
 
     "require-dev": {
-        "f2m2/apidocs": "dev-master"
+        "insanelab/apidocs": "dev-master"
     }
 
 Next, update Composer from the Terminal:
@@ -19,7 +19,7 @@ Next, update Composer from the Terminal:
 
 Once the packaage has installed, the final step is to add the service provider. Open `config/app.php`, and add a new item to the providers array.
 
-    'F2m2\Apidocs\ApidocsServiceProvider',
+    'Insanelab\Apidocs\ApidocsServiceProvider',
 
 Run the `artisan` command from the Terminal to see the new `apidocs` command.
 
@@ -32,8 +32,7 @@ Create a copy of the API Docs Config by running this `artisan` command:
 
 #### Laravel 4.2
 
-See installation:
-https://github.com/f2m2/apidocs/tree/1.0.0
+Our fork does not support Laravel below 5.0
 
 
 Notes
@@ -54,7 +53,7 @@ Below is a docBlock example.
     * Display the specified resource.
     * GET /user/{id}
     *
-    * @param  int  $id  The id of a User
+    * @param integer $id The id of a User
     * @return Response
     */
     public function show($id)
@@ -66,4 +65,3 @@ License
 -------
 
 See [LICENSE](LICENSE.md) file.
-

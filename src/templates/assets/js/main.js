@@ -73,7 +73,7 @@ $(function(){
 		var btn = $(this).find('.generate-response-btn');
 		btn.val('Loading...');
 		btn.prop('disabled', true);
-		self.find('.request-uri, .response-status, .response-header, .response-body').remove();
+		self.find('.request-uri, .response-status, .response-header, .response-body, .request').remove();
 
 		var uri = $(this).attr('uri');
 
@@ -82,24 +82,55 @@ $(function(){
    			uri = uri.replace(name, this.value);
   		});
 
+        $.fn.serializeObject = function()
+        {
+            var o = {};
+            var a = this.serializeArray();
+            $.each(a, function() {
+                if (o[this.name] !== undefined) {
+                    if (!o[this.name].push) {
+                        o[this.name] = [o[this.name]];
+                    }
+                    o[this.name].push(this.value || '');
+                } else {
+                    o[this.name] = this.value || '';
+                }
+            });
+            return o;
+        };
+
 		var url = api_base_url + uri;
 		var type = self.attr('type');
-		var data =	self.serialize();
+		var data_send =	self.serializeObject();
+		var headers = {};
 
+		if(data_send['authentication_ajax_value']) {
+			headers['Authorization'] = data_send['authentication_ajax_value'];
+		}
 
+        delete data_send['authentication_ajax_value'];
 
 	 	$.ajax({
 			url: url,
 			type: type,
-			dataType: 'json',
-			data: data,
+			headers: headers,
+            contentType: 'application/json;charset=utf-8',
+            dataType: 'json',
+            data: Object.keys(data_send).length ? JSON.stringify(data_send) : null,
 			success: function(data, status, request)
 	        {
 	        	body = JSON.stringify(JSON.parse(request.responseText), undefined, 4);
 	        	statusCode = request.statusCode().status;
 	        	statusText = request.statusCode().statusText;
-	        	responseHeaders = request.getAllResponseHeaders();
-	            updateResponse(self, url, body, statusCode, statusText, responseHeaders);
+                responseHeaders = request.getAllResponseHeaders();
+                requestHeaders = $.extend(headers, {'Type': type, 'Content-Type': 'application/json;charset=utf-8', 'Data-Type': 'json'});
+                if (Object.keys(data_send).length) {
+                    requestHeaders['Data'] = JSON.stringify(data_send);
+				}
+				if(request.getResponseHeader('Authorization')) {
+                	$('[name="authentication_ajax_value"]').val(request.getResponseHeader('Authorization'));
+				}
+	            updateResponse(self, url, body, statusCode, statusText, responseHeaders, requestHeaders);
 	            enableBtn(btn);
 
 		    },
@@ -116,7 +147,14 @@ $(function(){
 	        	statusCode = response.status;
 	        	statusText = response.statusText;
 	        	responseHeaders = response.getAllResponseHeaders();
-	        	updateResponse(self,url, body, statusCode, statusText, responseHeaders);
+                requestHeaders = $.extend(headers, {'Type': type, 'Content-Type': 'application/json;charset=utf-8', 'Data-Type': 'json'});
+                if (Object.keys(data_send).length) {
+                    requestHeaders['Data'] = JSON.stringify(data_send);
+                }
+                if(response.getResponseHeader('Authorization')) {
+                    $('[name="authentication_ajax_value"]').val(response.getResponseHeader('Authorization'));
+                }
+	        	updateResponse(self,url, body, statusCode, statusText, responseHeaders, requestHeaders);
 	        	enableBtn(btn);
 	        }
 		});
@@ -127,15 +165,17 @@ $(function(){
 			btn.val('Generate Example Response');
 		}
 
-		function updateResponse(self, requestUri, responseBody, statusCode, statusText, resonseHeaders)
+		function updateResponse(self, requestUri, responseBody, statusCode, statusText, responseHeaders, requestHeaders)
 		{
 			self.find('.request-uri, .response-status, .response-header, .response-body').remove();
-			requestUrl = stringForResponse('Request URL', 'request-uri request', requestUri);
-			responseHeaders = stringForResponse('Response Headers', 'response-header response', responseHeaders);
-			responseStatus = stringForResponse('Response Status', 'response-status response', statusCode + ' ' + statusText);
+			var requestUrl = stringForResponse('Request URL', 'request-uri request', requestUri);
+            requestHeaders = stringForRequest('Request', 'request', requestHeaders);
+            responseHeaders = stringForResponse('Response Headers', 'response-header response', responseHeaders);
+			var responseStatus = stringForResponse('Response Status', 'response-status response', statusCode + ' ' + statusText);
 			responseBody = stringForResponse('Response Body', 'response-body response', responseBody);
 
 			self.append(requestUrl);
+			self.append(requestHeaders);
 			self.append(responseHeaders);
 			self.append(responseStatus);
 			self.append(responseBody);
@@ -151,6 +191,17 @@ $(function(){
 			str += 		'<h3>' + title + '</h3>';
 			str +=		'<div><pre class="prettyprint linenums">' + text + '</pre> </div> </div>';
 			return str;
+
+		}
+
+		function stringForRequest(title, className, text)
+		{
+			var str = '';
+			$.each(text, function(key, value) {
+				str += key+': '+value+'\n';
+			});
+
+			return stringForResponse(title, className, str);
 
 		}
 
