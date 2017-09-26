@@ -1,7 +1,7 @@
 
 # Laravel API Docs Generator
 
-This Laravel package provides an API Documentation generator based upon your Routes and Controller Method DocBlock comments.
+This Laravel package provides an API Documentation generator based upon your Routes, Form requests with optional Controller Method DocBlock comments.
 
 ## Installation
 
@@ -53,7 +53,7 @@ Below is a docBlock example.
     * Display the specified resource.
     * GET /user/{id}
     *
-    * @param  integer  $id  The id of a User
+    * @param integer $id The id of a User
     * @return Response
     */
     public function show($id)
@@ -65,4 +65,3 @@ License
 -------
 
 See [LICENSE](LICENSE.md) file.
-
