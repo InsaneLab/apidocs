@@ -619,7 +619,7 @@ class ApiDocsGenerator
 
         $jwt = false;
         foreach ($route->middleware() as $middleware) {
-            if (strpos($middleware, 'jwt.') !== false) {
+            if (strpos($middleware, 'jwt.') !== false || strpos($middleware, 'auth') !== false) {
                 $jwt = true;
             }
         }
