@@ -388,12 +388,26 @@ class ApiDocsGenerator
                     $controller_params = $endpoint['controllerDocBlock']->getTagsByName('param');
                     $required_params = $endpoint['docBlock']->getTagsByName('required');
                     $auto_parameters = $this->findParsedRoute($parsedRoutes, end($uri), $endpoint['method']);
+                    $route_parameters = is_array($endpoint['route_params']) ? $endpoint['route_params'] : null;
 
                     $required = [];
+                    $required_route = [];
                     $optional = [];
 
+                    if ($route_parameters) {
+                        foreach($route_parameters as $param => $value) {
+                            $required_route[$param] = [
+                                'required' => true,
+                                'type' => 'integer',
+                                'default' => '',
+                                'value' => '',
+                                'description' => 'GET param'
+                            ];
+                        }
+                    }
+
                     foreach ($auto_parameters as $auto_key => $param) {
-                        if (!isset($required[$auto_key]) AND !isset($optional[$auto_key])) {
+                        if (!isset($required[$auto_key]) AND !isset($optional[$auto_key]) AND !isset($required_route[$auto_key])) {
                             if (is_array($param['description'])) {
                                 $param['description'] = '';
                             }
@@ -422,7 +436,7 @@ class ApiDocsGenerator
                             $param_name .= '[]';
                         }
 
-                        if (!isset($optional[$param_name])) {
+                        if (!isset($optional[$param_name]) AND !isset($required_route[$param_name])) {
                             $optional[$param_name] = [
                                 'required' => false,
                                 'type' => $param_type,
@@ -445,7 +459,7 @@ class ApiDocsGenerator
                         if (isset($param_name[0]) && $param_name[0] == '$') {
                             $param_name = str_replace('$', '', $param_name);
                         }
-                        if (!isset($required[$param_name])) {
+                        if (!isset($required[$param_name]) AND !isset($required_route[$param_name])) {
                             $required[$param_name] = [
                                 'required' => true,
                                 'type' => $param_type,
@@ -459,7 +473,13 @@ class ApiDocsGenerator
                         }
                     }
 
-                    $params = array_merge($required, $optional);
+                    ksort($required_route);
+
+                    ksort($required);
+
+                    ksort($optional);
+                    
+                    $params = array_merge($required_route, $required, $optional);
 
                     $parameters = '';
 
@@ -633,6 +653,7 @@ class ApiDocsGenerator
             'jwt' => $jwt,
             'prefix' => $route->getPrefix(),
             'method' => $route->methods()[0],
+            'route_params' => $route->parameters,
         ));
     }
 

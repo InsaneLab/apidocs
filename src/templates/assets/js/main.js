@@ -106,9 +106,18 @@ $(function(){
 
 		if(data_send['authentication_ajax_value']) {
 			headers['Authorization'] = data_send['authentication_ajax_value'];
+            $('[name="authentication_ajax_value"]').val(data_send['authentication_ajax_value']);
 		}
 
         delete data_send['authentication_ajax_value'];
+
+        if (type === 'GET' && Object.keys(data_send).length) {
+            data_url = Object.keys(data_send).map(function(k) {
+                return encodeURIComponent(k) + '=' + encodeURIComponent(data_send[k])
+            }).join('&');
+            url += '?'+data_url;
+            data_send = {};
+        }
 
 	 	$.ajax({
 			url: url,
